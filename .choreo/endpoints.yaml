@@ -1,0 +1,9 @@
+# Choreo Endpoints Configuration for Assignment Service
+version: 0.1
+endpoints:
+  - name: "assignment-service"
+    type: "REST"
+    networkVisibility: "Public"
+    context: "/"
+    port: 8082
+    schemaFilePath: "openapi.yaml"

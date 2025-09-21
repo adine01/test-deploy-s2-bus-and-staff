@@ -1,0 +1,40 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of 'go build'
+/bin/
+/build/
+/out/
+
+# Test binary, built with `go test -c`
+*.test
+
+# Go modules
+/go.mod
+/go.sum
+
+# Vendor directory
+/vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Coverage reports
+coverage.out
+
+
