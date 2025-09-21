@@ -1,4 +1,11 @@
+# Build stage
 FROM golang:1.23-alpine AS builder
+
+# Set environment variables
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64
 
 WORKDIR /app
 
@@ -6,15 +13,15 @@ WORKDIR /app
 COPY go.mod go.sum ./
 
 # Download dependencies
-RUN go mod download
+RUN go mod download && go mod verify
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+RUN go build -a -installsuffix cgo -o main .
 
-# Start a new stage from scratch
+# Runtime stage
 FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates tzdata wget
