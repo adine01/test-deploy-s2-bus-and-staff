@@ -1,0 +1,348 @@
+openapi: 3.0.3
+info:
+  title: Bus Staff Assignment Service API
+  description: Service for managing assignments between bus staff and buses
+  version: 1.0.0
+  contact:
+    name: Assignment Service
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8082
+    description: Development server
+  - url: https://assignment-service.choreo.dev
+    description: Production server
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the assignment service
+      operationId: getHealth
+      tags:
+        - Health
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: bus-staff-assignment
+
+  /api/assignments:
+    post:
+      summary: Create a new assignment
+      description: Assign staff to a bus with specific role and dates
+      operationId: createAssignment
+      tags:
+        - Assignments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - bus_id
+                - staff_id
+                - role
+                - start_date
+              properties:
+                bus_id:
+                  type: integer
+                  example: 1
+                staff_id:
+                  type: integer
+                  example: 1
+                role:
+                  type: string
+                  enum: [driver, conductor]
+                  example: driver
+                start_date:
+                  type: string
+                  format: date-time
+                  example: "2023-01-01T00:00:00Z"
+                end_date:
+                  type: string
+                  format: date-time
+                  example: "2023-12-31T23:59:59Z"
+                status:
+                  type: string
+                  enum: [active, completed, cancelled]
+                  example: active
+      responses:
+        "201":
+          description: Assignment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assignment"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      summary: Get all assignments
+      description: Retrieve all assignments with optional filtering
+      operationId: getAssignments
+      tags:
+        - Assignments
+      parameters:
+        - name: status
+          in: query
+          description: Filter by assignment status
+          required: false
+          schema:
+            type: string
+            enum: [active, completed, cancelled]
+        - name: role
+          in: query
+          description: Filter by staff role
+          required: false
+          schema:
+            type: string
+            enum: [driver, conductor]
+      responses:
+        "200":
+          description: List of assignments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignmentWithDetails"
+
+  /api/assignments/{id}:
+    get:
+      summary: Get assignment by ID
+      description: Retrieve a specific assignment with full details
+      operationId: getAssignment
+      tags:
+        - Assignments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Assignment ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Assignment details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssignmentWithDetails"
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Update assignment
+      description: Update an existing assignment
+      operationId: updateAssignment
+      tags:
+        - Assignments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Assignment ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum: [driver, conductor]
+                  example: conductor
+                end_date:
+                  type: string
+                  format: date-time
+                  example: "2023-12-31T23:59:59Z"
+                status:
+                  type: string
+                  enum: [active, completed, cancelled]
+                  example: completed
+      responses:
+        "200":
+          description: Assignment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assignment"
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete assignment
+      description: Remove an assignment
+      operationId: deleteAssignment
+      tags:
+        - Assignments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Assignment ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Assignment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Assignment deleted successfully
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/assignments/bus/{busId}:
+    get:
+      summary: Get staff assignments for a bus
+      description: Retrieve all staff currently assigned to a specific bus
+      operationId: getStaffForBus
+      tags:
+        - Queries
+      parameters:
+        - name: busId
+          in: path
+          required: true
+          description: Bus ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of staff assigned to the bus
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignmentWithDetails"
+
+  /api/assignments/staff/{staffId}:
+    get:
+      summary: Get assignments for a staff member
+      description: Retrieve all assignments for a specific staff member
+      operationId: getAssignmentsForStaff
+      tags:
+        - Queries
+      parameters:
+        - name: staffId
+          in: path
+          required: true
+          description: Staff ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of assignments for the staff member
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssignmentWithDetails"
+
+components:
+  schemas:
+    Assignment:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        bus_id:
+          type: integer
+          example: 1
+        staff_id:
+          type: integer
+          example: 1
+        role:
+          type: string
+          enum: [driver, conductor]
+          example: driver
+        start_date:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        end_date:
+          type: string
+          format: date-time
+          example: "2023-12-31T23:59:59Z"
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+          example: active
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00Z"
+
+    AssignmentWithDetails:
+      allOf:
+        - $ref: "#/components/schemas/Assignment"
+        - type: object
+          properties:
+            bus_plate_number:
+              type: string
+              example: ABC-1234
+            bus_model:
+              type: string
+              example: Mercedes Sprinter
+            staff_name:
+              type: string
+              example: John Doe
+            staff_position:
+              type: string
+              example: Senior Driver
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid request data
+
+tags:
+  - name: Health
+    description: Health check operations
+  - name: Assignments
+    description: Assignment CRUD operations
+  - name: Queries
+    description: Assignment query operations

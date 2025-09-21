@@ -1,0 +1,19 @@
+[_]
+schema-version = "0.2"
+
+[io.buildpacks.build.env]
+GO111MODULE = "on"
+GOOGLE_GO_VERSION = "1.23"
+GOPROXY = "https://proxy.golang.org"
+
+[[io.buildpacks.group]]
+id = "google.go.runtime"
+
+[[io.buildpacks.group]]
+id = "google.go.gopath"
+
+[[io.buildpacks.group]]
+id = "google.go.build"
+
+[[io.buildpacks.group]]
+id = "google.utils.label-image"
