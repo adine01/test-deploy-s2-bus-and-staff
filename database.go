@@ -16,21 +16,26 @@ func InitDB() error {
 	var err error
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
+		log.Printf("DATABASE_URL environment variable not found, this is required for database connection")
+		log.Printf("Please set DATABASE_URL in your deployment environment")
 		log.Fatal("DATABASE_URL environment variable is required")
 	}
 
+	log.Printf("Connecting to database...")
 	// Create connection pool
 	db, err = pgxpool.New(context.Background(), databaseURL)
 	if err != nil {
+		log.Printf("Failed to create database connection pool: %v", err)
 		return err
 	}
 
 	// Test the connection
 	if err := db.Ping(context.Background()); err != nil {
+		log.Printf("Failed to ping database: %v", err)
 		return err
 	}
 
-	log.Println("Connected to Supabase database")
+	log.Printf("Database connection established successfully")
 
 	// Create tables if they don't exist
 	if err := createTables(); err != nil {
